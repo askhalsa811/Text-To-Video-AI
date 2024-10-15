@@ -4,10 +4,7 @@ import tempfile
 import zipfile
 import platform
 import subprocess
-from moviepy.editor import (AudioFileClip, CompositeVideoClip, CompositeAudioClip, ImageClip,
-                            TextClip, VideoFileClip)
-from moviepy.audio.fx.audio_loop import audio_loop
-from moviepy.audio.fx.audio_normalize import audio_normalize
+from moviepy.editor import (AudioFileClip, CompositeVideoClip, CompositeAudioClip, TextClip, VideoFileClip)
 import requests
 
 def download_file(url, filename):
@@ -40,53 +37,41 @@ def get_output_media(audio_file_path, timed_captions, background_video_data, vid
         # Download the video file
         video_filename = tempfile.NamedTemporaryFile(delete=False).name
         download_file(video_url, video_filename)
-
-        # Check if the video file was downloaded properly
-        if os.path.getsize(video_filename) == 0:
-            print("Downloaded video file is empty:", video_filename)
-            continue  # Handle the error appropriately
-
+        
         # Create VideoFileClip from the downloaded file
         video_clip = VideoFileClip(video_filename)
-
-        # Check if video_clip is valid
-        if video_clip is None or video_clip.size == (0, 0):
-            print("Failed to create video clip from:", video_filename)
-            continue  # Handle the error appropriately
-
-        # Resize video clip for 9:16 aspect ratio
-        try:
-            video_clip = video_clip.resize(newsize=(720, 1280))  # Resize to 720x1280 for 9:16
-        except Exception as e:
-            print(f"Error resizing video clip: {e}")
-            continue  # Handle the error appropriately
-
         video_clip = video_clip.set_start(t1)
         video_clip = video_clip.set_end(t2)
+        video_clip = video_clip.resize(newsize=(720, 1280))  # Resize for 9:16 aspect ratio
         visual_clips.append(video_clip)
-
+    
     audio_clips = []
     audio_file_clip = AudioFileClip(audio_file_path)
     audio_clips.append(audio_file_clip)
 
+    # Updated caption rendering
     for (t1, t2), text in timed_captions:
-        # Create text clip with Tahoma font
-        text_clip = TextClip(txt=text, fontsize=100, color="white", stroke_width=3, stroke_color="black", font="Tahoma", method="label")
+        text_clip = TextClip(
+            txt=text,
+            fontsize=70,  # Adjust the font size as necessary
+            color="white",
+            stroke_width=2,
+            stroke_color="black",
+            font="Tahoma",  # Set the font to Tahoma
+            method="label"
+        )
         text_clip = text_clip.set_start(t1)
         text_clip = text_clip.set_end(t2)
-        text_clip = text_clip.set_position(["center", 1000])  # Adjust position for 9:16 format
+        text_clip = text_clip.set_position(("center", 1100))  # Center and adjust vertical position
         visual_clips.append(text_clip)
 
-    # Combine all video clips into one
     video = CompositeVideoClip(visual_clips)
-
-    # Combine audio clips if any
+    
     if audio_clips:
         audio = CompositeAudioClip(audio_clips)
         video.duration = audio.duration
         video.audio = audio
 
-    # Write the final video file
     video.write_videofile(OUTPUT_FILE_NAME, codec='libx264', audio_codec='aac', fps=25, preset='veryfast')
     
     # Clean up downloaded files
