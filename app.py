@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     search_terms = getVideoSearchQueriesTimed(response, timed_captions)
     print(search_terms)
-"""
+
     background_video_urls = None
     if search_terms is not None:
         background_video_urls = generate_video_url(search_terms, VIDEO_SERVER)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         print("No background video")
 
     background_video_urls = merge_empty_intervals(background_video_urls)
-    
+    """
     if background_video_urls is not None:
         video = get_output_media(SAMPLE_FILE_NAME, timed_captions, background_video_urls, VIDEO_SERVER)
         print(video)
