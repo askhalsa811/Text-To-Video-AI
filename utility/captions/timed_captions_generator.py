@@ -46,7 +46,7 @@ def interpolateTimeFromDict(word_position, d):
             return value
     return None
 
-def getCaptionsWithTime(whisper_analysis, maxCaptionSize=15, considerPunctuation=False):
+def getCaptionsWithTime(whisper_analysis, maxCaptionSize=35, considerPunctuation=False):
    
     wordLocationToTime = getTimestampMapping(whisper_analysis)
     position = 0
